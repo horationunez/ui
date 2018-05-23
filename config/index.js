@@ -1,44 +1,34 @@
-// see http://vuejs-templates.github.io/webpack for documentation.
 var path = require('path')
 
 module.exports = {
-	server: {
-		cdnDomain: 'www-kiva-org.global.ssl.fastly.net',
-		env: require('./env/prod.env'),
+	app: {
+		publicPath: 'https://www-kiva-org.global.ssl.fastly.net/ui/',
 		graphqlUri: 'https://www.kiva.org/ajax/graphql',
+		enablePerimeterx: true,
+		perimeterxAppId: 'PXr3pNVz1F',
+		enableAnalytics: true,
+		enableGTM: false,
+		googleTagmanagerId: 'GTM-PX6FDG',
+		enableGA: true,
+		gaId: 'UA-175897-4',
+		enableSnowplow: true,
+		snowplowUri: 'events.fivetran.com/snowplow/kiva_rules',
+		enableFB: true,
+		fbApplicationId: '123230061223',
+		fbPixelId: '1531213600467139',
+		enableSentry: true,
+		sentryURI: 'https://3ab8031cd8bf45d48f79e2b77657e16e@sentry.io/1201288'
+	},
+	server: {
 		port: 8888,
+		graphqlUri: 'https://api.kivaws.org/graphql',
+		sessionUri: 'https://www.kiva.org/start-ui-session',
+		memcachedEnabled: true,
+		memcachedServers: 'memcache-01:11211, memcache-02:11211',
 	},
 	build: {
-		env: require('./env/prod.env'),
-		// index: path.resolve(__dirname, '../dist/index.html'),
 		assetsRoot: path.resolve(__dirname, '../dist'),
 		assetsSubDirectory: 'static',
-		assetsPublicPath: '/',
 		productionSourceMap: true,
-		// Gzip off by default as many popular static hosts such as
-		// Surge or Netlify already gzip all static assets for you.
-		// Before setting to `true`, make sure to:
-		// npm install --save-dev compression-webpack-plugin
-		productionGzip: false,
-		productionGzipExtensions: ['js', 'css'],
-		// Run the build command with an extra argument to
-		// View the bundle analyzer report after build finishes:
-		// `npm run build --report`
-		// Set to `true` or `false` to always turn it on or off
-		bundleAnalyzerReport: process.env.npm_config_report
-	},
-	dev: {
-		env: require('./env/dev.env'),
-		port: 8888,
-		autoOpenBrowser: false,
-		assetsSubDirectory: 'static',
-		assetsPublicPath: '/',
-		proxyTable: {},
-		// CSS Sourcemaps off by default because relative paths are "buggy"
-		// with this option, according to the CSS-Loader README
-		// (https://github.com/webpack/css-loader#sourcemaps)
-		// In our experience, they generally work as expected,
-		// just be aware of this issue when enabling this option.
-		cssSourceMap: false
 	}
 }

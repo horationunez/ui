@@ -1,27 +1,22 @@
 var path = require('path');
-var webpack = require('webpack');
-var utils = require('./utils');
+var assetsPath = require('./assets-path');
+var styleLoaders = require('./style-loaders');
 var config = require('../config');
-var vueLoaderConfig = require('./vue-loader.conf');
+var VueLoaderPlugin = require('vue-loader').VueLoaderPlugin;
 var StylelintPlugin = require('stylelint-webpack-plugin');
-// Can be removed once we update to Webpack 4
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-
-const isProd = process.env.NODE_ENV === 'production';
 
 function resolve (dir) {
 	return path.join(__dirname, '..', dir);
 }
 
-let webpackConfig = {
+module.exports = {
+	mode: 'none',
 	output: {
 		path: config.build.assetsRoot,
 		// This Pushes JS Files to the /js sub-folder inside /static
-		filename: utils.assetsPath('js/[name].[hash].js'),
-		chunkFilename: utils.assetsPath('js/[id].[chunkhash].js'),
-		publicPath: process.env.NODE_ENV === 'production'
-			? config.build.assetsPublicPath
-			: config.dev.assetsPublicPath
+		filename: assetsPath('js/[name].[hash].js'),
+		chunkFilename: assetsPath('js/[name].[chunkhash].js'),
+		publicPath: '/',
 	},
 	resolve: {
 		extensions: ['.js', '.vue', '.json'],
@@ -44,7 +39,24 @@ let webpackConfig = {
 			{
 				test: /\.vue$/,
 				loader: 'vue-loader',
-				options: vueLoaderConfig
+				options: {
+					transformAssetUrls: {
+						video: 'src',
+						source: 'src',
+						img: 'src',
+						image: 'xlink:href'
+					}
+				}
+			},
+			{
+				// Inject styles from the /pages/ directory as <style> tags
+				test: /\/pages\/.+\.scss$/,
+				use: ['vue-style-loader'].concat(styleLoaders)
+			},
+			{
+				test: /\.html$/,
+				loader: resolve('build/template-string-loader'),
+				include: [resolve('src'), resolve('test')]
 			},
 			{
 				test: /\.js$/,
@@ -65,16 +77,16 @@ let webpackConfig = {
 				loader: 'url-loader',
 				options: {
 					limit: 10000,
-					name: utils.assetsPath('fonts/[name].[hash:7].[ext]')
+					name: assetsPath('fonts/[name].[hash:7].[ext]')
 				}
 			},
 			{
-				test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
-				exclude: /(icons|fonts)\//,
+				test: /\.(png|jpe?g|gif|svg|ico)(\?.*)?$/,
+				exclude: [resolve('src/assets/icons')],
 				loader: 'url-loader',
 				options: {
-					limit: 10000,
-					name: utils.assetsPath('img/[name].[hash:7].[ext]')
+					limit: 1, // 10000 is default but we'd need to exclude apple-touch-icons,
+					name: assetsPath('img/[name].[hash:7].[ext]')
 				}
 			},
 			{
@@ -82,48 +94,16 @@ let webpackConfig = {
 				loader: 'url-loader',
 				options: {
 					limit: 10000,
-					name: utils.assetsPath('media/[name].[hash:7].[ext]')
+					name: assetsPath('media/[name].[hash:7].[ext]')
 				}
 			}
 		]
 	},
 	plugins: [
-		// TODO: Consider profiding $ + Foundation globally
-		// - meaning it's always available within a component with no need to import
-		// new webpack.ProvidePlugin({
-		// 	$: 'jquery',
-		// 	jQuery: 'jquery',
-		// 	Foundation: 'foundation'
-		// })
+		new VueLoaderPlugin(),
 		new StylelintPlugin({
-			files: ['src/**/*.vue', 'src/**/*.scss'],
+			files: ['src/**/*.scss'],
 			syntax: 'scss'
-		}),
-	]
-}
-
-if (isProd) {
-	const ExtractTextPlugin = require('extract-text-webpack-plugin');
-	const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin');
-
-	webpackConfig.plugins.push(
-		new UglifyJsPlugin({
-			uglifyOptions: {
-				compress: { warnings: false }
-			}
-			, sourceMap: true
-		}),
-		new webpack.optimize.ModuleConcatenationPlugin(),
-		new ExtractTextPlugin({
-			// filename: 'static/css/common.[chunkhash].css'
-			filename: 'static/css/[name].[chunkhash].css'
-		}),
-		new OptimizeCSSPlugin({
-			cssProcessorOptions: {
-				safe: true
-			}
 		})
-	);
-}
-
-module.exports = webpackConfig;
+	]
+};

@@ -1,0 +1,47 @@
+query {
+	my {
+		lendingStats {
+			countriesLentTo {
+				isoCode
+				name
+			}
+			sectorsLentTo {
+				id
+				name
+			}
+			activitiesLentTo {
+				id
+				name
+			}
+			partnersLentTo {
+				id
+				name
+			}
+		}
+	}
+	countryFacets {
+		count
+		country {
+			name
+			region
+			isoCode
+		}
+	}
+	kivaStats {
+		sectors {
+			id
+			name
+		}
+		activities {
+			id
+			name
+		}
+	}
+	partners (filters: { status: active }, limit: null) {
+		totalCount
+		values {
+			id
+			name
+		}
+	}
+}

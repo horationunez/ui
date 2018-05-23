@@ -4,6 +4,7 @@ require('../build/check-versions')();
 // dependencies
 const chokidar = require('chokidar');
 const express = require('express');
+const helmet = require('helmet');
 const MFS = require('memory-fs');
 const path = require('path');
 const webpack = require('webpack');
@@ -13,11 +14,27 @@ const vueMiddleware = require('./vue-middleware');
 const serverConfig = require('../build/webpack.server.conf');
 const clientConfig = require('../build/webpack.client.dev.conf');
 const argv = require('minimist')(process.argv.slice(2));
-const config = require('../config/selectConfig')(argv.config || 'dev-vm');
+const config = require('../config/selectConfig')(argv.config || 'local');
+const Raven = require('raven');
+const initCache = require('./util/initCache');
+
+// Initialize a Cache instance, Should Only be called once!
+const cache = initCache(config.server);
 
 // app init
 const port = argv.port || config.server.port;
 const app = express();
+
+// Set sensible security headers for express
+app.use(helmet());
+
+// Configuring Sentry for use
+if (config.app.enableSentry) {
+	Raven.config(config.app.sentryURI).install();
+	app.use(Raven.requestHandler());
+	// Tested this out further down in the file, before the app.listen line, but couldn't get it to work
+	app.use(Raven.errorHandler());
+}
 
 // webpack setup
 const clientCompiler = webpack(clientConfig);
@@ -55,6 +72,7 @@ const updateHandler = () => {
 			clientManifest,
 			serverBundle,
 			config,
+			cache,
 		});
 		resolveHandlerReady();
 	}

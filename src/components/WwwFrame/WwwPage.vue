@@ -7,15 +7,17 @@
 			<slot></slot>
 		</main>
 		<the-footer />
+		<the-basket-bar />
 	</div>
 </template>
 
 <script>
 import TheHeader from './TheHeader';
 import TheFooter from './TheFooter';
+import TheBasketBar from './TheBasketBar';
 
 export default {
-	components: { TheHeader, TheFooter },
+	components: { TheHeader, TheFooter, TheBasketBar },
 };
 </script>
 
@@ -23,9 +25,13 @@ export default {
 @import 'settings';
 
 .www-page {
-	min-height: 100%;
+	height: 100%;
 	display: flex;
 	flex-flow: column nowrap;
+
+	& > * {
+		flex-shrink: 0; // Handle IE defaulting flex-shrink to 1
+	}
 
 	main {
 		flex-grow: 1;

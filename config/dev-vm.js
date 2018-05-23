@@ -2,9 +2,28 @@ var merge = require('webpack-merge')
 var base = require('./index.js')
 
 module.exports = merge(base, {
-	server: {
-		cdnDomain: 'dev-vm-01.kiva.org',
+	app: {
+		publicPath: 'https://dev-vm-01.kiva.org/ui/',
 		graphqlUri: 'https://dev-vm-01.kiva.org/ajax/graphql',
-		memcachedServers: ['localhost'],
+		enablePerimeterx: false,
+		perimeterxAppId: '###',
+		enableAnalytics: false,
+		enableGTM: false,
+		googleTagmanagerId: 'GTM-PXFRMT',
+		enableGA: true,
+		gaId: 'UA-11686022-7',
+		enableSnowplow: true,
+		snowplowUri: 'events.fivetran.com/snowplow/v5qt54ocr2nm',
+		enableFB: false,
+		fbApplicationId: '263964058630',
+		fbPixelId: '108245819986414',
+		enableSentry: false,
+		sentryURI: ''
+	},
+	server: {
+		graphqlUri: 'https://api-vm.kiva.org/graphql',
+		sessionUri: 'https://dev-vm-01.kiva.org/start-ui-session',
+		memcachedEnabled: true,
+		memcachedServers: 'localhost:11211',
 	}
 })

@@ -1,123 +1,314 @@
 <template>
 	<header class="top-nav">
-		<div class="row header-row">
-			<div class="small-3 large-2 xxlarge-2 columns header-column logo-area">
-				<router-link class="header-button" :to="logoUrl">
-					<kv-icon name="new-kiva-logo" />
-				</router-link>
-			</div>
-			<div class="small-3 large-2 xxlarge-1 columns header-column">
-				<kv-dropdown-link name="lend-dropdown" :to="lendUrl" class="header-button">
-					Lend <kv-icon name="triangle" />
-				</kv-dropdown-link>
-			</div>
-			<div class="small-1-8th large-1 xxlarge-1 columns" :class="{ 'show-for-large-up': isVisitor }">
-				<search-toggle controls="header-search-form"
-					@toggle="open => searchOpen = open"
-					class="header-button" />
-			</div>
-			<div class="columns header-column right-side"
-				:class="[ isVisitor ? 'small-6 xx-large-3' : 'small-3-8ths xx-large-2' ]"
+		<div class="header-row row">
+			<router-link class="header-logo header-button" to="/" v-kv-track-event="'TopNav|click-Logo'">
+				<kv-icon name="new-kiva-logo" />
+			</router-link>
+			<router-link
+				:id="lendMenuId"
+				to="/lend"
+				class="header-button"
+				v-kv-track-event="'TopNav|click-Lend'"
 			>
-				<div v-if="isVisitor" class="small-6 large-4 columns">
-					<kv-dropdown-link name="about-dropdown" :to="aboutUrl" class="header-button">
-						About <kv-icon name="triangle" />
-					</kv-dropdown-link>
-				</div>
-				<div v-if="showBasket"
-					id="top-basket-button"
-					class="show-for-large-up"
-					:class="[ isVisitor ? 'large-4' : 'large-6' ]"
-				>
-					<router-link class="header-button" :to="basketUrl">
-						<span class="amount">{{ basketCount }}</span> Basket
-					</router-link>
-				</div>
-				<div class="columns" :class="[ isVisitor ? 'small-6 large-4' : 'small-12 large-6' ]">
-					<router-link v-if="isVisitor" :to="loginUrl" class="header-button">Sign in</router-link>
-					<kv-dropdown-link v-else name="my-kiva-dropdown" :to="portfolioUrl" class="header-button my-kiva">
-						<span class="amount">{{ balance | numeral('$0') }}</span>
-						<span class="circle-avatar" :style="profileStyle"></span>
-					</kv-dropdown-link>
+				<span>Lend <kv-icon name="triangle" /></span>
+			</router-link>
+			<button class="search-toggler header-button"
+				:class="{'show-for-large': isVisitor}"
+				:aria-expanded="searchOpen ? 'true' : 'false'"
+				:aria-pressed="searchOpen ? 'true' : 'false'"
+				aria-controls="top-nav-search-area"
+				@click="toggleSearch"
+				v-kv-track-event="'TopNav|click-search-toggle'"
+			>
+				<kv-icon v-show="!searchOpen" class="search-icon" name="magnify-glass" />
+				<kv-icon v-show="searchOpen" class="close-icon" name="x" />
+			</button>
+			<div class="flexible-center-area">
+				<div id="top-nav-search-area" :aria-hidden="searchOpen ? 'false' : 'true'">
+					<button class="close-search hide-for-large"
+						:aria-expanded="searchOpen ? 'true' : 'false'"
+						:aria-pressed="searchOpen ? 'true' : 'false'"
+						aria-controls="top-nav-search-area"
+						@click="toggleSearch"
+						v-kv-track-event="'TopNav|click-search-close-mobile'"
+					>
+						<kv-icon class="close-icon" name="x" />
+					</button>
+					<search-bar ref="search" />
 				</div>
 			</div>
-			<div class="search-container" :class="{ 'show-for-large-up': isVisitor }">
-				<search-form name="header-search-form" :open="searchOpen" />
-			</div>
+			<router-link
+				v-if="isVisitor"
+				to="/borrow"
+				class="header-button show-for-xlarge"
+				v-kv-track-event="'TopNav|click-Borrow'"
+			>
+				<span>Borrow</span>
+			</router-link>
+			<router-link
+				:id="aboutMenuId"
+				v-if="isVisitor"
+				to="/about"
+				class="header-button"
+				v-kv-track-event="'TopNav|click-About'"
+			>
+				<span>About <kv-icon name="triangle" /></span>
+			</router-link>
+			<router-link
+				v-if="showBasket"
+				to="/basket"
+				class="header-button show-for-large"
+				v-kv-track-event="'TopNav|click-Basket'"
+			>
+				<span>
+					<span class="amount">{{ basketCount }}</span>
+					Basket
+				</span>
+			</router-link>
+			<router-link
+				v-if="isVisitor"
+				to="/login"
+				class="header-button"
+				v-kv-track-event="'TopNav|click-Sign-in'"
+			>
+				<span>Sign in</span>
+			</router-link>
+			<router-link
+				v-else
+				:id="myKivaMenuId"
+				to="/portfolio"
+				class="header-button my-kiva"
+				v-kv-track-event="'TopNav|click-Portfolio'"
+			>
+				<span>
+					<span class="amount">{{ balance | numeral('$0') }}</span>
+					<img :src="profilePic">
+				</span>
+			</router-link>
 		</div>
-		<lend-menu-dropdown />
-		<kv-dropdown-menu name="about-dropdown">
-			<li v-for="item in aboutItems" :key="item.label">
-				<router-link :to="item.url">{{ item.label }}</router-link>
-			</li>
-		</kv-dropdown-menu>
-		<kv-dropdown-menu name="my-kiva-dropdown">
-			<li v-for="item in myKivaItems" :key="item.label">
-				<router-link :to="item.url">{{ item.label }}</router-link>
-			</li>
-		</kv-dropdown-menu>
+		<kv-dropdown :controller="lendMenuId" @show.once="loadLendInfo" @show="onLendMenuShow" @hide="onLendMenuHide">
+			<the-lend-menu ref="lendMenu" />
+		</kv-dropdown>
+		<kv-dropdown :controller="aboutMenuId" v-if="isVisitor" class="dropdown-list">
+			<ul>
+				<li>
+					<router-link
+						to="/about"
+						v-kv-track-event="'TopNav|click-About-About us'">
+						About us
+					</router-link>
+				</li>
+				<li>
+					<router-link
+						to="/about/how"
+						v-kv-track-event="'TopNav|click-About-How Kiva works'">
+						How Kiva works
+					</router-link>
+				</li>
+				<li>
+					<router-link
+						to="/about/where-kiva-works"
+						v-kv-track-event="'TopNav|click-About-Where Kiva works'">
+						Where Kiva works
+					</router-link>
+				</li>
+				<li>
+					<router-link
+						to="/about/impact"
+						v-kv-track-event="'TopNav|click-About-Impact'">
+						Impact
+					</router-link>
+				</li>
+				<li>
+					<router-link
+						to="/about/leadership"
+						v-kv-track-event="'TopNav|click-About-Leadership'">
+						Leadership
+					</router-link>
+				</li>
+				<li>
+					<router-link
+						to="/about/finances"
+						v-kv-track-event="'TopNav|click-About-Finances'">
+						Finances
+					</router-link>
+				</li>
+				<li>
+					<router-link
+						to="/about/press-center"
+						v-kv-track-event="'TopNav|click-About-Press'">
+						Press
+					</router-link>
+				</li>
+				<li>
+					<router-link
+						to="/about/due-diligence"
+						v-kv-track-event="'TopNav|click-About-Due diligence'">
+						Due diligence
+					</router-link>
+				</li>
+			</ul>
+		</kv-dropdown>
+		<kv-dropdown :controller="myKivaMenuId" v-if="!isVisitor" class="dropdown-list">
+			<ul>
+				<template v-if="isBorrower">
+					<li>
+						<router-link
+							to="/my/borrower"
+							v-kv-track-event="'TopNav|click-Portfolio-My borrower dashboard'">
+							My borrower dashboard
+						</router-link>
+					</li>
+					<template v-if="loanId !== null">
+						<li>
+							<router-link
+								:to="`/lend/${loanId}`"
+								v-kv-track-event="'TopNav|click-Portfolio-My loan page'">
+								My loan page
+							</router-link>
+						</li>
+						<li>
+							<router-link
+								:to="`/lend/${loanId}#loanComments`"
+								v-kv-track-event="'TopNav|click-Portfolio-My Conversations'">
+								My conversations
+							</router-link>
+						</li>
+					</template>
+				</template>
+				<template v-if="isTrustee">
+					<template v-if="!isBorrower">
+						<li>
+							<router-link
+								:to="trusteeLoansUrl"
+								v-kv-track-event="'TopNav|click-Portfolio-My Trustee loans'">
+								My Trustee loans
+							</router-link>
+						</li>
+						<li>
+							<router-link
+								:to="`/trustees/${trusteeId}`"
+								v-kv-track-event="'TopNav|click-Portfolio-My public Trustee page'">
+								My public Trustee page
+							</router-link>
+						</li>
+					</template>
+					<li>
+						<router-link
+							to="/my/trustee"
+							v-kv-track-event="'TopNav|click-Portfolio-My Trustee dashboard'">
+							My Trustee dashboard
+						</router-link>
+					</li>
+					<hr>
+				</template>
+				<li>
+					<router-link
+						to="/portfolio"
+						v-kv-track-event="'TopNav|click-Portfolio-Portfolio'">
+						Portfolio
+					</router-link>
+				</li>
+				<li>
+					<router-link
+						to="/teams/my-teams"
+						v-kv-track-event="'TopNav|click-Portfolio-My teams'">
+						My teams
+					</router-link>
+				</li>
+				<li>
+					<router-link
+						to="/portfolio/donations"
+						v-kv-track-event="'TopNav|click-Portfolio-Donations'">
+						Donations
+					</router-link>
+				</li>
+				<li>
+					<router-link
+						to="/settings"
+						v-kv-track-event="'TopNav|click-Portfolio-Settings'">
+						Settings
+					</router-link>
+				</li>
+				<hr>
+				<li>
+					<router-link
+						to="/logout"
+						v-kv-track-event="'TopNav|click-Portfolio-Sign out'">
+						Sign out
+					</router-link>
+				</li>
+			</ul>
+		</kv-dropdown>
 	</header>
 </template>
 
 <script>
-// import numeral from 'numeral';
-import { mapState } from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 
-import KvDropdownLink from '@/components/Kv/Dropdown/KvDropdownLink';
-import KvDropdownMenu from '@/components/Kv/Dropdown/KvDropdownMenu';
+import KvDropdown from '@/components/Kv/KvDropdown';
 import KvIcon from '@/components/Kv/KvIcon';
-import LendMenuDropdown from './LendMenuDropdown';
-import SearchForm from './SearchForm';
-import SearchToggle from './SearchToggle';
+import SearchBar from './SearchBar';
 
 export default {
 	components: {
-		KvDropdownLink,
-		KvDropdownMenu,
+		KvDropdown,
 		KvIcon,
-		LendMenuDropdown,
-		SearchForm,
-		SearchToggle,
+		SearchBar,
+		TheLendMenu: () => import('./LendMenu/TheLendMenu'),
 	},
 	data() {
 		return {
 			isFreeTrial: false,
-			basketCount: 0,
-			logoUrl: '/',
-			lendUrl: '/lend',
-			aboutUrl: '/about',
-			basketUrl: '/basket',
-			loginUrl: '/login',
-			portfolioUrl: '/portfolio',
-			aboutItems: [
-				{ label: 'About us', url: '/about' },
-				{ label: 'How Kiva works', url: '/about' },
-				{ label: 'Where Kiva works', url: '/about' },
-				{ label: 'Impact', url: '/about' },
-				{ label: 'Leadership', url: '/about' },
-				{ label: 'Finances', url: '/about' },
-				{ label: 'Press', url: '/about' },
-				{ label: 'Due diligence', url: '/about' },
-			],
-			myKivaItems: [
-				{ label: 'Portfolio', url: '/portfolio' },
-				{ label: 'My teams', url: '/portfolio' },
-				{ label: 'Donations', url: '/portfolio' },
-				{ label: 'Settings', url: '/portfolio' },
-				{ label: 'Sign out', url: '/portfolio' },
-			],
+			aboutMenuId: 'about-header-dropdown',
+			lendMenuId: 'lend-header-dropdown',
+			myKivaMenuId: 'my-kiva-header-dropdown',
 			searchOpen: false,
 		};
 	},
 	computed: {
 		...mapState({
 			isVisitor: state => state.my.userAccount.id === null,
+			isBorrower: state => state.my.isBorrower,
+			basketCount: state => state.shop.headerItemCount,
 			balance: state => Math.floor(state.my.userAccount.balance),
-			profileStyle: state => ({ backgroundImage: `url(${state.my.lender.image.url})` }),
+			profilePic: state => state.my.lender.image.url,
+			loanId: state => state.my.mostRecentBorrowedLoan.id,
+			trusteeId: state => state.my.trustee.id,
 		}),
+		...mapGetters([
+			'isTrustee'
+		]),
+		trusteeLoansUrl() {
+			return {
+				path: '/lend',
+				query: {
+					trustee: this.trusteeId,
+					status: 'fundRaising',
+					sortBy: 'newest',
+				}
+			};
+		},
 		showBasket() {
 			return this.basketCount > 0 && !this.isFreeTrial;
 		},
+	},
+	methods: {
+		onLendMenuShow() {
+			this.$refs.lendMenu.onOpen();
+		},
+		onLendMenuHide() {
+			this.$refs.lendMenu.onClose();
+		},
+		loadLendInfo() {
+			this.$refs.lendMenu.onLoad();
+		},
+		toggleSearch() {
+			this.searchOpen = !this.searchOpen;
+			if (this.searchOpen) {
+				this.$refs.search.focus();
+			}
+		}
 	},
 	asyncData({ store }) {
 		return store.dispatch('getMyKivaInfo');
@@ -128,455 +319,275 @@ export default {
 <style lang="scss">
 @import 'settings';
 
-// $search-form-height: $header-height;
-// $search-form-height-small: $header-height-small;
-// $search-form-transition: width 0.5s ease;
-//
-// $search-margin: 0.6rem;
-// $search-margin-small: 0.4rem;
-// $search-centering-margin: 0.65rem;
-// $search-centering-margin-small: 0.32rem;
-// $search-button-size-small: 2.5rem;
-// $search-icon-size: $top-nav-font-size - $top-nav-font-reduction;
-//
-// $search-input-width-small: calc(100% - #{$search-margin-small});
-// $search-input-width: calc(100% - #{$search-margin});
-// $search-input-padding: $search-margin;
-// $search-input-padding-s: $search-margin-small;
-//
-// .top-nav {
-// 	background-color: $kiva-green;
-// 	position: relative;
-//
-// 	.columns {
-// 		padding: 0;
-//
-// 		@media #{$large-up} {
-// 			padding: 0;
-// 			width: auto;
-// 		}
-//
-// 		.kv-dropdown {
-// 			position: inherit;
-// 		}
-// 	}
-//
-// 	.header-row {
-// 		position: relative;
-// 	}
-//
-// 	.header-column > a {
-// 		border-right: 1px solid $kiva-navdivider-green;
-// 	}
-//
-// 	.header-column:last-child > a {
-// 		border-right: none;
-// 	}
-//
-// 	.logo-area .header-button {
-// 		$vertical-offset: rem-calc(3);
-//
-// 		line-height: 0;
-// 		padding: 0 0.3rem $vertical-offset;
-//
-// 		@media #{$large-up} {
-// 			padding: 0 rem-calc(16) $vertical-offset;
-// 		}
-//
-// 		.icon {
-// 			width: rem-calc(57);
-// 			height: $header-height-small;
-// 			margin-top: -$vertical-offset;
-//
-// 			@media #{$large-up} {
-// 				height: $header-height;
-// 			}
-// 		}
-// 	}
-//
-// 	.amount {
-// 		color: inherit;
-// 		background: none;
-// 		padding: 0;
-//
-// 		@media #{$large-up} {
-// 			color: $kiva-green;
-// 			background: $white;
-// 			padding: rem-calc(1) rem-calc(7);
-// 		}
-// 	}
-//
-// 	.promo-space.columns {
-// 		position: absolute;
-// 		text-align: center;
-// 		line-height: rem-calc(20);
-// 		width: 100%;
-// 		font-size: 0.8rem;
-// 		font-weight: bold;
-// 		margin-top: rem-calc(11);
-// 		color: $kiva-darkgreen;
-//
-// 		.amount {
-// 			background-color: $kiva-darkgreen;
-// 		}
-// 	}
-//
-// 	.right-side.columns {
-// 		float: right;
-// 		border: none;
-//
-// 		@media #{$large-up} {
-// 			width: auto;
-// 		}
-//
-// 		.columns > a {
-// 			border-left: 1px solid $kiva-navdivider-green;
-// 		}
-// 	}
-//
-// 	.f-dropdown {
-// 		background-color: $level-one-background;
-// 		outline: none;
-// 		width: auto;
-// 		max-width: none;
-// 		margin-top: 0;
-// 		border-top: none;
-// 		z-index: 1112;
-//
-// 		&::after {
-// 			display: none;
-// 		}
-//
-// 		&.content {
-// 			padding: 0;
-// 		}
-// 	}
-//
-// 	.pronus {
-// 		font-size: 0.8rem;
-// 		text-align: center;
-// 		background-color: $kiva-green;
-// 		border-top: 1px solid $kiva-navdivider-green;
-// 		height: rem-calc(45);
-// 		line-height: rem-calc(45);
-// 		color: $dark-green;
-// 		width: 100%;
-// 		display: block;
-//
-// 		@media #{$small-only} {
-// 			line-height: rem-calc(21);
-// 		}
-// 	}
-// }
-//
-// .header-button {
-// 	display: block;
-// 	padding: 0;
-// 	line-height: $header-height-small;
-// 	background-color: $kiva-green;
-// 	white-space: nowrap;
-// 	text-align: center;
-//
-// 	@media #{$large-up} {
-// 		padding: 0 $header-height/4;
-// 		line-height: $header-height;
-// 	}
-//
-// 	&:link,
-// 	&:visited,
-// 	&:hover,
-// 	&:active {
-// 		color: $white;
-// 		text-decoration: none;
-//
-// 		.icon {
-// 			fill: $white;
-// 		}
-// 	}
-//
-// 	&[data-dropdown] .icon {
-// 		width: 0.5rem;
-// 		height: 0.5rem;
-// 		transition: transform 400ms ease;
-// 		transform: rotate(180deg);
-//
-// 		@media #{$medium-up} {
-// 			width: 0.75rem;
-// 			height: 0.75rem;
-// 		}
-// 	}
-//
-// 	&[aria-expanded="true"] {
-// 		color: $kiva-darkgreen;
-//
-// 		.icon {
-// 			fill: $kiva-darkgreen;
-// 			transform: rotate(0deg);
-// 		}
-// 	}
-//
-// 	.icon {
-// 		width: $top-nav-font-size - $top-nav-font-reduction;
-// 		height: $top-nav-line-height - $top-nav-font-reduction;
-//
-// 		@media #{$large-up} {
-// 			width: $top-nav-font-size;
-// 			height: $top-nav-line-height;
-// 		}
-// 	}
-//
-// 	img,
-// 	.circle-avatar {
-// 		margin-top: -$header-height-small/16;
-//
-// 		@media #{$large-up} {
-// 			margin-top: -$header-height/16;
-// 		}
-// 	}
-//
-// 	&.hidden {
-// 		display: none;
-// 	}
-// }
-//
-// .no-touch {
-// 	.top-nav .header-button:hover {
-// 		background-color: $kiva-icon-green;
-// 	}
-// }
-//
-// .header-button.search-toggle {
-// 	border-right: none;
-// 	line-height: 0;
-//
-// 	.icon {
-// 		fill: $white;
-// 		height: $header-height-small;
-//
-// 		@media #{$large-up} {
-// 			height: $header-height;
-// 		}
-// 	}
-//
-// 	.close-icon {
-// 		fill: none;
-// 		stroke: $white;
-// 	}
-//
-// 	&[aria-expanded="true"] .close-icon {
-// 		stroke: $kiva-darkgreen;
-// 	}
-// }
-//
-// .search-container {
-// 	width: 100%;
-// 	height: 0;
-// 	position: absolute;
-// 	z-index: 1;
-//
-// 	@media #{$large-up} {
-// 		position: static;
-// 	}
-// }
-//
-// #header-search-form {
-// 	display: block;
-// 	overflow: hidden;
-// 	width: 100%;
-// 	background-color: $kiva-green;
-// 	transition: $search-form-transition;
-//
-// 	@media #{$large-up} {
-// 		width: auto;
-// 	}
-//
-// 	&[aria-hidden="true"] {
-// 		width: 0;
-//
-// 		@media #{$large-up} {
-// 			width: auto;
-// 		}
-//
-// 		div {
-// 			width: 0;
-// 		}
-// 	}
-//
-// 	div {
-// 		width: calc(100% + #{rem-calc(1)});
-// 		overflow: hidden;
-// 		position: relative;
-// 		vertical-align: middle;
-// 		height: $search-form-height-small;
-// 		border-right: 1px solid $kiva-navdivider-green;
-// 		transition: $search-form-transition;
-//
-// 		@media #{$large-up} {
-// 			height: $search-form-height;
-// 		}
-// 	}
-//
-// 	span.twitter-typeahead {
-// 		width: calc(100% - #{$search-button-size-small});
-//
-// 		@media #{$large-up} {
-// 			position: static !important;
-// 			width: 100%;
-// 		}
-//
-// 		pre {
-// 			top: 0;
-// 		}
-// 	}
-//
-// 	.search-icon {
-// 		position: absolute;
-// 		left: 0.4rem + $search-button-size-small;
-// 		z-index: 100;
-// 		width: $search-icon-size;
-// 		height: $header-height-small;
-//
-// 		@media #{$large-up} {
-// 			left: 0.4rem;
-// 			height: $header-height;
-// 		}
-// 	}
-//
-// 	#search-box {
-// 		z-index: 1;
-// 	}
-//
-// 	input {
-// 		$search-input-padding: 0.6rem;
-//
-// 		width: $search-input-width-small;
-// 		padding: $search-input-padding-s $search-input-padding-s $search-input-padding-s ($top-nav-font-size * 1.5);
-// 		margin: $search-centering-margin-small 0;
-// 		display: inline-block;
-// 		height: auto;
-//
-// 		@media #{$large-up} {
-// 			width: $search-input-width;
-// 			margin: $search-centering-margin 0;
-// 			padding: $search-input-padding $search-input-padding $search-input-padding ($top-nav-font-size * 1.5);
-// 		}
-// 	}
-//
-// 	.tt-hint {
-// 		color: $iron;
-// 	}
-// }
-//
-// #close-search {
-// 	float: left;
-// 	width: $search-button-size-small;
-// 	line-height: 0;
-// 	text-align: center;
-//
-// 	.close-icon {
-// 		width: $top-nav-font-size - $top-nav-font-reduction;
-// 		height: $search-button-size-small;
-// 		fill: none;
-// 		stroke: $kiva-darkgreen;
-// 	}
-// }
-//
-// .top-nav-search-menu {
-// 	padding: $search-margin-small;
-// }
-//
-// @media #{$large-up} {
-// 	.search-button-container {
-// 		width: auto;
-// 	}
-// }
-//
-// .basket-bar {
-// 	position: fixed;
-// 	bottom: 0;
-// 	height: rem-calc(66);
-// 	width: 100%;
-// 	z-index: 1111;
-// 	box-shadow: 0 -1px 3px 0 rgba(51, 51, 51, 0.3);
-// 	transition: bottom 500ms ease;
-//
-// 	a {
-// 		font-size: 1.1666666667rem !important;
-// 		width: 100%;
-// 		display: block;
-//
-// 		&.button {
-// 			height: rem-calc(66);
-// 			line-height: rem-calc(66);
-// 		}
-// 	}
-// }
-//
-// .basket-bar.hide-for-large-up.off-screen {
-// 	bottom: rem-calc(-67);
-// }
-//
-// @media #{$small-only}, #{$medium-only} {
-// 	.top-nav {
-// 		.small-1-8th {
-// 			width: grid-calc(1, 8);
-// 		}
-//
-// 		.small-3-8ths {
-// 			width: grid-calc(3, 8);
-// 		}
-//
-// 		.columns {
-// 			padding: 0;
-// 		}
-//
-// 		.right-side {
-// 			padding: 0;
-//
-// 			.columns:first-child a {
-// 				border-left: none;
-// 			}
-// 		}
-//
-// 		.f-dropdown {
-// 			border: none;
-//
-// 			// !important to override foundation inline styles applied by js
-// 			left: 0 !important;
-// 			width: 100% !important;
-//
-// 			&::before,
-// 			&::after {
-// 				display: none;
-// 			}
-// 		}
-// 	}
-// }
-//
-// .my-kiva.header-button {
-// 	text-align: right;
-// }
-//
-// .circle-avatar {
-// 	width: 0.78125 * $header-height-small;
-// 	height: 0.78125 * $header-height-small;
-// 	margin-left: 0.3rem;
-// 	margin-right: 0.3rem;
-// 	display: inline-block;
-// 	border-radius: 50%;
-// 	background-position-y: center;
-// 	background-position-x: center;
-// 	background-repeat: no-repeat;
-// 	background-size: cover;
-// 	vertical-align: middle;
-// }
-//
-// @media #{$large-up} {
-// 	.circle-avatar {
-// 		width: 0.78125 * $header-height;
-// 		height: 0.78125 * $header-height;
-// 		margin-left: 0.5rem;
-// 		margin-right: 0;
-// 	}
-// }
+$top-nav-font-size: 1.125rem;
+$header-height: rem-calc(45);
+$header-height-large: rem-calc(64);
+$header-color: $kiva-green;
+$text-color: $white;
+$hover-color: $kiva-navdivider-green;
+$divider-color: $kiva-navdivider-green;
+$form-padding: 0.32rem;
+$form-padding-large: 0.6rem;
+$close-search-button-size: 2.5rem;
+
+.top-nav {
+	background-color: $header-color;
+	font-size: $top-nav-font-size;
+	font-weight: 400;
+
+	.amount {
+		@include breakpoint(large) {
+			color: $header-color;
+			background-color: $text-color;
+			padding: rem-calc(1) rem-calc(7);
+		}
+	}
+
+	.dropdown-pane {
+		border-top: none;
+		font-size: 1rem;
+
+		ul {
+			margin: 0;
+		}
+
+		li {
+			list-style: none;
+		}
+
+		@include breakpoint(medium down) {
+			width: 100%;
+			left: 0 !important;
+
+			button,
+			a,
+			li > span {
+				display: block;
+				width: 100%;
+				padding: 0.5rem 1rem;
+				border-bottom: 1px solid $kiva-stroke-gray;
+			}
+		}
+	}
+
+	.dropdown-list {
+		a {
+			display: block;
+			width: 100%;
+			padding: 0.5rem 1rem;
+			white-space: nowrap;
+			border-bottom: 1px solid $kiva-stroke-gray;
+
+			@include breakpoint(large) {
+				border-bottom: none;
+			}
+		}
+
+		hr {
+			display: none;
+			margin: 0 1rem;
+
+			@include breakpoint(large) {
+				display: block;
+			}
+		}
+	}
+}
+
+.header-row {
+	position: relative;
+	display: flex;
+	align-items: stretch;
+	flex-wrap: nowrap;
+	height: $header-height;
+
+	@include breakpoint(large) {
+		height: $header-height-large;
+	}
+}
+
+.header-logo {
+	.icon {
+		display: unset;
+		width: rem-calc(57);
+		height: 100%;
+		margin: rem-calc(-3) auto 0;
+		fill: $text-color;
+		max-height: $header-height;
+
+		@include breakpoint(large) {
+			max-height: $header-height-large;
+		}
+	}
+}
+
+.header-button {
+	border-right: 1px solid $divider-color;
+	text-align: center;
+	white-space: nowrap;
+	flex-grow: 2;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+
+	&:last-child {
+		border-right: none;
+	}
+
+	&:link,
+	&:visited,
+	&:active {
+		color: white;
+		text-decoration: none;
+	}
+
+	@include breakpoint(large) {
+		flex-grow: 0;
+		padding: 0 1rem;
+	}
+
+	.icon-triangle {
+		fill: $text-color;
+		width: 0.5rem;
+		height: 0.5rem;
+		transition: transform 400ms ease;
+		transform: rotate(180deg);
+
+		@include breakpoint(medium) {
+			width: 0.75rem;
+			height: 0.75rem;
+		}
+	}
+}
+
+.header-button:hover {
+	background-color: $hover-color;
+	color: $text-color;
+}
+
+.header-button[aria-expanded="true"] .icon-triangle {
+	transform: rotate(0);
+}
+
+.search-toggler {
+	flex-grow: 1;
+	height: 100%;
+	flex-direction: unset;
+
+	&:focus {
+		outline: none;
+	}
+
+	@include breakpoint(large) {
+		flex-grow: 0;
+		border-right: none;
+	}
+
+	.icon {
+		height: 1.125rem;
+		width: 1.125rem;
+		margin: 0 auto;
+	}
+
+	.search-icon {
+		fill: $text-color;
+	}
+
+	.close-icon {
+		stroke: $text-color;
+	}
+}
+
+.flexible-center-area {
+	flex-grow: 0;
+	order: -1;
+	height: 100%;
+	border-right: 1px solid $divider-color;
+	text-align: center;
+
+	@include breakpoint(large) {
+		flex-grow: 1;
+		order: 0;
+	}
+}
+
+#top-nav-search-area {
+	position: absolute;
+	left: 0;
+	top: 0;
+	height: 100%;
+	width: calc(100% + 1px);
+	background-color: $header-color;
+	border-right: solid 1px $divider-color;
+	transition: width 0.5s ease;
+
+	&[aria-hidden="true"] {
+		width: 0;
+		overflow: hidden;
+	}
+
+	@include breakpoint(large) {
+		position: static;
+	}
+}
+
+#top-nav-search-area form {
+	width: calc(100% - #{$close-search-button-size});
+	float: left;
+	padding: $form-padding $form-padding $form-padding 0;
+
+	@include breakpoint(large) {
+		padding: $form-padding-large $form-padding-large $form-padding-large 0;
+		width: 100%;
+	}
+
+	input[type="search"] {
+		padding-left: $top-nav-font-size * 1.5;
+	}
+
+	.icon {
+		width: $top-nav-font-size;
+		height: $header-height - (2 * $form-padding);
+
+		@include breakpoint(large) {
+			height: $header-height-large - (2 * $form-padding-large);
+		}
+	}
+}
+
+#top-nav-search-area .close-search {
+	float: left;
+	width: $close-search-button-size;
+	height: 100%;
+
+	.icon {
+		width: $top-nav-font-size;
+		height: $header-height;
+		stroke: $text-color;
+	}
+}
+
+.my-kiva {
+	text-align: right;
+	flex-grow: 3;
+
+	img {
+		border-radius: 50%;
+		height: $header-height * 0.8;
+		margin: 0 0.25rem;
+	}
+
+	@include breakpoint(large) {
+		flex-grow: 0;
+
+		.amount {
+			margin-right: 0.25rem;
+		}
+
+		img {
+			height: $header-height-large * 0.8;
+		}
+	}
+}
 </style>

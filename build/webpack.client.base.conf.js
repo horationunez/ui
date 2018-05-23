@@ -1,25 +1,31 @@
-var config = require('../config')
-var webpack = require('webpack')
-var merge = require('webpack-merge')
-var baseWebpackConfig = require('./webpack.base.conf')
-var SvgStorePlugin = require('webpack-svgstore-plugin')
-var VueSSRClientPlugin = require('vue-server-renderer/client-plugin')
+var config = require('../config');
+var merge = require('webpack-merge');
+var assetsPath = require('./assets-path');
+var baseWebpackConfig = require('./webpack.base.conf');
+var styleLoaders = require('./style-loaders');
+var MiniCssExtractPlugin = require('mini-css-extract-plugin');
+var SvgStorePlugin = require('webpack-svgstore-plugin');
+var VueSSRClientPlugin = require('vue-server-renderer/client-plugin');
 
-var env = process.env.NODE_ENV === 'testing'
-? require('../config/test.env')
-: config.build.env
-
-module.exports = merge(baseWebpackConfig, {
+module.exports = merge.smart(baseWebpackConfig, {
 	entry: {
 		app: './src/client-entry.js'
 	},
 	devtool: config.build.productionSourceMap ? '#source-map' : false,
+	module: {
+		rules: [
+			{
+				// Extract styles, excluding the /pages/ directory as those are injected
+				test: /\.scss$/,
+				exclude: /\pages\//,
+				use: [MiniCssExtractPlugin.loader].concat(styleLoaders)
+			},
+		]
+	},
 	plugins: [
-		// http://vuejs.github.io/vue-loader/en/workflow/production.html
-		new webpack.DefinePlugin({
-			'process.env': env,
-			'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
-			'process.env.VUE_ENV': '"client"'
+		new MiniCssExtractPlugin({
+			filename: assetsPath('css/[name].[contenthash].css'),
+			chunkFilename: assetsPath('css/[name].[contenthash].css'),
 		}),
 		// minify and combine svg icons
 		new SvgStorePlugin({
@@ -34,24 +40,6 @@ module.exports = merge(baseWebpackConfig, {
 			},
 			prefix: 'icon-',
 		}),
-		// extract vendor chunks for better caching
-		new webpack.optimize.CommonsChunkPlugin({
-			name: 'vendor',
-			minChunks: function (module) {
-			// a module is extracted into the vendor chunk if...
-			return (
-				// it's inside node_modules
-				/node_modules/.test(module.context) &&
-				// and not a CSS file (due to extract-text-webpack-plugin limitation)
-				!/\.css$/.test(module.request)
-			)
-			}
-		}),
-		// extract webpack runtime & manifest to avoid vendor chunk hash changing
-		// on every build.
-		new webpack.optimize.CommonsChunkPlugin({
-			name: 'manifest'
-		}),
 		new VueSSRClientPlugin()
 	]
-})
+});
