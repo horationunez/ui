@@ -20,7 +20,7 @@ pipeline {
             steps {
                 sh 'npm run build'
                 sh 'rm -rf node_modules'
-                sh 'npm -i --production'
+                sh 'npm i --production'
             }
         }
     }
