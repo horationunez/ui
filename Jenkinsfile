@@ -23,10 +23,14 @@ pipeline {
                 sh 'npm i --production'
             }
         }
-    }
-    post {
-        always {
-            archiveArtifacts artifacts: '**', fingerprint: true
+        stage('Archive') {
+            steps {
+                archiveArtifacts artifacts: 'node_modules/**, config/**, dist/**, server/**, package.json', fingerprint: true
+            }
+        } 
+        stage('Deploy Dev') {
+            steps {
+            sh 'echo deploy command goes here'
         }
     }
 }
