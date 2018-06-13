@@ -19,14 +19,16 @@ export default {
 	position: relative;
 	margin-top: 0.6875rem;
 
-	a {
+	a,
+	a:hover,
+	a:focus {
 		text-decoration: none;
 	}
 
 	.content {
 		@include small-text();
 
-		font-weight: bold;
+		padding: 0;
 		color: $kiva-darkgreen;
 		text-align: center;
 
