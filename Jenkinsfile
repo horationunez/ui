@@ -30,7 +30,8 @@ pipeline {
         } 
         stage('Deploy Dev') {
             steps {
-            sh 'echo deploy command goes here'
+                sh 'echo deploy command goes here'
+            }
         }
     }
 }
