@@ -23,6 +23,37 @@
 				<i v-show="loading">Authenticating...</i>
 
 				<h3 v-if="userId">Currently Logged In</h3>
+
+				<hr>
+
+				<form
+					v-show="!regLoading && !userId"
+					ref="regForm"
+					name="regForm"
+					:action="regActionUrlWithDone"
+					@submit="doReg">
+					<input name="firstName" type="text" placeholder="First Name">
+					<input name="lastName" type="text" placeholder="Last Name">
+					<input placeholder="Enter Email Address" type="email" name="email">
+					<input placeholder="Enter password" type="password" name="password">
+					<input type="checkbox" id="terms_agreement" name="terms_agreement">
+					<label for="terms_agreement">
+						I have read and agree to the <a
+							href="https://dev-vm-01.kiva.org/legal/terms"
+							target="_blank"
+							title="Open Terms of Use in a new window"
+							class="termsOfUseLink">Terms of Use</a> and <a
+								href="https://dev-vm-01.kiva.org/legal/privacy"
+								target="_blank"
+								title="Open Privacy Policy in a new window"
+								class="privacyPolicyLink">Privacy Policy</a>.</label>
+					<button type="submit" name="regForm_submit" id="regForm_submit">Register</button>
+					<input type="hidden" name="currURL" :value="currUrl">
+					<!-- Have to pass this crumb in the Header and in the Request -->
+					<input type="hidden" id="crumb" name="crumb" :value="crumb">
+				</form>
+
+				<i v-show="regLoading">Registering...</i>
 			</div>
 		</div>
 	</www-page>
@@ -46,12 +77,16 @@ export default {
 			// doneUrl works when applied to actionUrl...but isn't really useful
 			// - when POSTing via ajax the doneUrl/currUrl page is loaded and returned in the response
 			// ?doneUrl=https%3A%2F%2Fdev-vm-01.kiva.org%2Fui-site-map
-			actionUrl: 'https://dev-vm-01.kiva.org/login/process',
+			loginActionUrl: 'https://dev-vm-01.kiva.org/login/process',
+			loginActionUrlWithDone: 'https://dev-vm-01.kiva.org/login/process?doneUrl=https%3A%2F%2Fdev-vm-01.kiva.org%2Fui-site-map',
+			regActionUrl: 'https://dev-vm-01.kiva.org/register/process',
+			regActionUrlWithDone: 'https://dev-vm-01.kiva.org/register/process?doneUrl=https%3A%2F%2Fdev-vm-01.kiva.org%2Fui-site-map',
 			// Done url isn't working from currUrl ?doneUrl=https%3A%2F%2Fdev-vm-01.kiva.org%2Fui-site-map
 			currUrl: 'https://dev-vm-01.kiva.org/page-two',
 			crumb: '',
 			userId: null,
-			loading: false
+			loading: false,
+			regLoading: false
 		};
 	},
 	apollo: {
@@ -75,6 +110,9 @@ export default {
 			}
 			cookiesSub = cookiesSub.replace('crumb%3D', '');
 			return cookiesSub;
+		},
+		doReg() {
+			this.regLoading = true;
 		},
 		doLogin() {
 			this.loading = true;
