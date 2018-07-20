@@ -10,7 +10,7 @@
 					v-show="!loading && !userId"
 					ref="loginForm"
 					name="loginForm"
-					:action="actionUrl"
+					:action="loginActionUrl"
 					@submit.prevent.stop="doLogin">
 					<input placeholder="Enter Email Address" type="email" name="email">
 					<input placeholder="Enter password" type="password" name="password">
@@ -31,7 +31,7 @@
 					ref="regForm"
 					name="regForm"
 					:action="regActionUrlWithDone"
-					@submit="doReg">
+					@submit.prevent.stop="doReg">
 					<input name="firstName" type="text" placeholder="First Name">
 					<input name="lastName" type="text" placeholder="Last Name">
 					<input placeholder="Enter Email Address" type="email" name="email">
@@ -111,20 +111,13 @@ export default {
 			cookiesSub = cookiesSub.replace('crumb%3D', '');
 			return cookiesSub;
 		},
-		doReg() {
-			this.regLoading = true;
-		},
-		doLogin() {
-			this.loading = true;
-			const formData = new FormData(this.$refs.loginForm);
-			// console.log(formData);
-
+		postForm(actionUrl, formData) {
 			// expand the elements from the .entries() iterator into an actual array
 			const parameters = [...formData.entries()]
 				// transform the elements into encoded key-value-pairs
 				.map(e => `${encodeURIComponent(e[0])}=${encodeURIComponent(e[1])}`);
 
-			fetch(this.actionUrl, {
+			fetch(actionUrl, {
 				method: 'POST',
 				mode: 'cors', // no-cors, cors, *same-origin
 				cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
@@ -155,6 +148,16 @@ export default {
 					window.location = window.location;
 				})
 				.catch(error => console.error('Fetch Error =\n', error));
+		},
+		doReg() {
+			this.regLoading = true;
+			const formData = new FormData(this.$refs.regForm);
+			this.postForm(this.regActionUrl, formData);
+		},
+		doLogin() {
+			this.loading = true;
+			const formData = new FormData(this.$refs.loginForm);
+			this.postForm(this.loginActionUrl, formData);
 		},
 	}
 };
