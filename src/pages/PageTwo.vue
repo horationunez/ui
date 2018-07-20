@@ -8,9 +8,9 @@
 
 				<form :action="actionUrl">
 					<input placeholder="Enter Email Address" type="email" name="email">
-					<input placeholder="Enter Email Address" type="password" name="password">
+					<input placeholder="Enter password" type="password" name="password">
 					<button type="submit" name="loginForm_submit" id="loginForm_submit">Sign in</button>
-					<!-- <input type="hidden" name="currURL" value="https://dev-vm-01.kiva.org/page-two"> -->
+					<input type="hidden" name="currURL" :value="currUrl">
 					<input type="hidden" id="crumb" name="crumb" value="f3d57f9e20">
 				</form>
 			</div>
@@ -30,7 +30,11 @@ export default {
 	},
 	data() {
 		return {
-			actionUrl: '/login/process?doneUrl=https%3A%2F%2Fdev-vm-01.kiva.org%2Fui-site-map'
+			// Done url isn't working from here ?doneUrl=https%3A%2F%2Fdev-vm-01.kiva.org%2Fui-site-map
+			// -- But we can reload to the same page which is our use case for login/reg embeded in basket
+			/* eslint-disable max-len */
+			actionUrl: 'https://dev-vm-01.kiva.org/login/process',
+			currUrl: 'https://dev-vm-01.kiva.org/page-two'
 		};
 	},
 	apollo: {
