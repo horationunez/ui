@@ -1,0 +1,6 @@
+query {
+	general {
+		content: cmsContent(pathId: "eoy-appeal-banner")
+		matchedContent: cmsContent(pathId: "eoy-appeal-banner-matched")
+	}
+}
