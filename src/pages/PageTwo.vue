@@ -93,7 +93,8 @@ export default {
 				credentials: 'same-origin', // include, same-origin, *omit
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
-					HTTP_X_CRUMB: this.crumb
+					// Not really needed
+					// HTTP_X_CRUMB: this.crumb
 				},
 				redirect: 'follow', // manual, *follow, error
 				referrer: 'no-referrer', // no-referrer, *client
