@@ -2,6 +2,7 @@ import ApolloClient from 'apollo-client';
 import { ApolloLink } from 'apollo-link';
 import { IntrospectionFragmentMatcher, InMemoryCache } from 'apollo-cache-inmemory';
 import HttpLinkCreator from './HttpLink';
+import RequestLink from './RequestLink';
 import StateLinkCreator from './StateLink';
 
 export default function createApolloClient({
@@ -21,7 +22,8 @@ export default function createApolloClient({
 	return new ApolloClient({
 		link: ApolloLink.from([
 			StateLinkCreator({ cache }),
-			HttpLinkCreator({ cookie, csrfToken, uri }),
+			RequestLink({ cookie, csrfToken }),
+			HttpLinkCreator({ cookie, uri }),
 		]),
 		cache,
 		defaultOptions: {
