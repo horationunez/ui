@@ -11,10 +11,11 @@
 		<hr>
 		<div class="featured-text">Or use your email</div>
 
-		<div class="input-set">
+		<div class="input-set form-group" :class="{error: validation.hasError('email')}">
 			<label for="email">
-				Email <input type="email" name="email" autofocus>
+				Email <input type="email" name="email" v-model="email" class="form-control" autofocus>
 			</label>
+			<div class="message">{{ validation.firstError('email') }} </div>
 		</div>
 
 		<div class="input-set">
@@ -48,7 +49,14 @@
 
 <script>
 import cookie from 'js-cookie';
+import Vue from 'vue';
 import KvButton from '@/components/Kv/KvButton';
+import SimpleVueValidation from 'simple-vue-validator';
+
+const { Validator } = SimpleVueValidation.Validator;
+
+Vue.use(SimpleVueValidation);
+console.log(Validator);
 
 export default {
 	components: {
@@ -78,6 +86,7 @@ export default {
 			crumb: '',
 			loginFailed: false,
 			loading: false, // TODO: Add loading state v-show="!loading && !userId"
+			email: '',
 		};
 	},
 	created() {
@@ -90,7 +99,27 @@ export default {
 	mounted() {
 		this.currUrl = window.location.href;
 	},
+	validators: {
+		email(value) {
+			return this.$validate.value(value).required().email();
+		}
+	},
 	methods: {
+		submit() {
+			console.log(this);
+			this.$validate()
+				.then(success => {
+					if (success) {
+						console.log('Validation successful');
+					} else {
+						console.log('Complete validation failure');
+					}
+				});
+		},
+		reset() {
+			this.email = '';
+			this.validation.reset();
+		},
 		getCookieCrumb() {
 			let crumb = '';
 			let kvisCookie = '';
@@ -134,9 +163,10 @@ export default {
 				});
 		},
 		doLogin() {
+			this.submit();
 			// this.loading = true;
-			const formData = new FormData(this.$refs.loginForm);
-			this.postForm(this.loginActionUrl, formData);
+			// const formData = new FormData(this.$refs.loginForm);
+			// this.postForm(this.loginActionUrl, formData);
 		},
 		handleLoginResponse(response) {
 			// TODO: Make this better
