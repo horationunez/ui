@@ -40,6 +40,17 @@ export default context => {
 			return reject({ url: fullPath });
 		}
 
+		// console.log(context);
+		console.log(`server-entry cookies: ${JSON.stringify(context.cookies)}`);
+		const initialApolloClientCache = apolloClient.extract();
+		console.log(`cache: ${JSON.stringify(initialApolloClientCache)}`);
+		context.cookies = Object.assign(context.cookies, {
+			testFromState: JSON.stringify(initialApolloClientCache.ROOT_QUERY.testArray[0])
+		});
+		console.log(`server-entry cookied Updated: ${JSON.stringify(context.cookies)}`);
+
+		// console.log(app);
+
 		// render content for template
 		context.renderedConfig = renderGlobals({ __KV_CONFIG__: config });
 		context.renderedNoscript = noscriptTemplate(config);

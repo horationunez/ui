@@ -1,5 +1,12 @@
 import { withClientState } from 'apollo-link-state';
 
+function setTestArray() {
+	return [
+		{ id: 3, name: 'matt', __typename: 'Entry' },
+		{ id: 2, name: 'ghost', __typename: 'Entry' }
+	];
+}
+
 export default ({ cache }) => {
 	return withClientState({
 		cache,
@@ -9,7 +16,8 @@ export default ({ cache }) => {
 			tipMsgType: 'info',
 			tipVisible: false,
 			tipPersist: false,
-			tipInitUrl: ''
+			tipInitUrl: '',
+			testArray: setTestArray()
 		},
 		resolvers: {
 			Mutation: {

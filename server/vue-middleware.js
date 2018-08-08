@@ -78,6 +78,7 @@ module.exports = function createMiddleware({
 			.then(([types, cookieInfo]) => {
 				// add fetched types to rendering context
 				context.config.graphqlFragmentTypes = types;
+				console.log(`vue middleware: ${JSON.stringify(context.cookies)}`);
 				// update cookies in the rendering context with any newly fetched session cookies
 				context.cookies = Object.assign(context.cookies, cookieInfo.cookies);
 				// forward any newly fetched 'Set-Cookie' headers
