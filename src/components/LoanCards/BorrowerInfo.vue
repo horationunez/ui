@@ -6,9 +6,16 @@
 			:v-kv-track-event="`['Lending', 'click-Read more', 'Name', ${loanId}, 'true']`">
 			{{ name }}
 		</router-link>
-		<div class="country">{{ country }}</div>
+		<div class="country-and-amount" v-if="cardsize === 'medium'">
+			<span class="country">{{ country }}</span>
+			<span class="amount">{{ amount | numeral('$0,0') }}</span>
+		</div>
+		<div class="country" v-else>{{ country }}</div>
 		<div class="loan-use">
-			<span>
+			<span v-if="cardsize === 'medium'">
+				{{ shortenedLoanUse }}
+			</span>
+			<span v-else>
 				A loan of {{ amount | numeral('$0,0') }} {{ helpedLanguage }}
 				{{ borrowerCountLanguage }} {{ shortenedLoanUse }}
 			</span>
@@ -62,6 +69,10 @@ export default {
 		activeSort: {
 			type: String,
 			default: 'Popularity'
+		},
+		cardsize: {
+			type: String,
+			default: ''
 		}
 	},
 	computed: {
@@ -80,7 +91,7 @@ export default {
 			return ' ';
 		},
 		shortenedLoanUse() {
-			const maxLength = 100;
+			const maxLength = this.cardsize === 'medium' ? 80 : 100;
 			const lowerCaseUse = this.use.toString().charAt(0).toLowerCase() + this.use.toString().slice(1);
 			const convertedUse = (this.use.substring(0, this.name.length) === this.name) ? this.use : lowerCaseUse;
 
@@ -105,6 +116,16 @@ export default {
 	line-height: rem-calc(22);
 	flex-grow: 1;
 
+	&.medium {
+		font-size: rem-calc(14);
+		line-height: rem-calc(18);
+		margin-top: rem-calc(10);
+
+		.name {
+			font-size: rem-calc(18);
+		}
+	}
+
 	.name {
 		font-size: rem-calc(22);
 		font-weight: 400;
@@ -114,6 +135,14 @@ export default {
 		color: $kiva-text-light;
 		font-weight: 400;
 		margin-bottom: rem-calc(10);
+	}
+
+	.country-and-amount {
+		display: flex;
+		color: $kiva-text-light;
+		font-weight: 400;
+		justify-content: space-between;
+		margin-top: rem-calc(6);
 	}
 
 	.loan-length {

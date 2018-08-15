@@ -78,10 +78,19 @@ export default {
 		cardsInWindow() {
 			return Math.floor(this.wrapperWidth / this.cardWidth);
 		},
+		cardsize() {
+			return this.$router.currentRoute.query.cardsize;
+		},
 		cardWidth() {
 			return this.windowWidth > minWidthToShowLargeCards
 				? largeCardWidthPlusPadding
 				: smallCardWidthPlusPadding;
+		},
+		imgDefaultSize() {
+			return this.cardsize === 'medium' ? 'w280h168' : 'w480h360';
+		},
+		imgRetinaSize() {
+			return this.cardsize === 'medium' ? 'w560h336' : 'w960h720';
 		},
 		minLeftMargin() {
 			return (this.loans.length - this.cardsInWindow) * -this.cardWidth;
@@ -102,8 +111,8 @@ export default {
 				// @todo - decide if we want to request images sized for the
 				// smaller loan cards on category-row pages - if we do, then
 				// we'd need to adjust cloudinary allowed sizes in settings mgr.
-				// imgDefaultSize: 'w280h210',
-				// imgRetinaSize: 'w560h420',
+				imgDefaultSize: this.imgDefaultSize,
+				imgRetinaSize: this.imgRetinaSize,
 			};
 		},
 		result({ data, loading }) {

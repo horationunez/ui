@@ -56,5 +56,11 @@ export default {
 	margin-top: rem-calc(30);
 	margin-bottom: rem-calc(10);
 	width: 100%;
+
+	&.medium {
+		margin-bottom: 0;
+		margin-top: 1rem;
+		padding: 0.75rem 2rem;
+	}
 }
 </style>

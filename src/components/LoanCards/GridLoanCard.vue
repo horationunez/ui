@@ -1,7 +1,11 @@
 <template>
 	<div class="column column-block">
-		<div class="grid-loan-card">
+		<div
+			class="grid-loan-card"
+			:class="cardsize"
+		>
 			<loan-card-image
+				:class="cardsize"
 				:loan-id="loan.id"
 				:name="loan.name"
 				:retina-image-url="loan.image.retina"
@@ -21,6 +25,8 @@
 				:status="loan.status"
 				:borrower-count="loan.borrowerCount"
 				:loan-length="loan.lenderRepaymentTerm"
+				:class="cardsize"
+				:cardsize="cardsize"
 			/>
 
 			<div class="loan-card-footer-wrap">
@@ -33,12 +39,14 @@
 				/>
 
 				<action-button
+					:class="cardsize"
 					:loan-id="loan.id"
 					:items-in-basket="itemsInBasket"
 					:is-lent-to="loan.userProperties.lentTo"
 					:is-funded="isFunded"/>
 
 				<matching-text
+					v-if="cardsize !== 'medium'"
 					:matching-text="loan.matchingText"
 					:is-funded="isFunded"/>
 			</div>
@@ -119,7 +127,10 @@ export default {
 				return `Only ${mins} minutes left! `;
 			}
 			return 'Expiring now!';
-		}
+		},
+		cardsize() {
+			return this.$router.currentRoute.query.cardsize;
+		},
 	},
 	methods: {
 		toggleFavorite() {

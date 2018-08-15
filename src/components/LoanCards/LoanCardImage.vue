@@ -67,6 +67,10 @@ export default {
 		position: relative;
 	}
 
+	.medium .borrower-image-wrapper {
+		padding-top: 60%;
+	}
+
 	.borrower-image {
 		position: absolute;
 		top: 0;
