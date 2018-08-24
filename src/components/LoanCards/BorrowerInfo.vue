@@ -92,7 +92,7 @@ export default {
 		},
 		shortenedLoanUse() {
 			const maxLength = this.cardsize === 'medium' ? 80 : 100;
-			const lowerCaseUse = this.use.toString().charAt(0).toLowerCase() + this.use.toString().slice(1);
+			const lowerCaseUse = this.use.toString().charAt(0).toUpperCase() + this.use.toString().slice(1);
 			const convertedUse = (this.use.substring(0, this.name.length) === this.name) ? this.use : lowerCaseUse;
 
 			if (this.use.length === 0) {
